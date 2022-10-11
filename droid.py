@@ -1,5 +1,6 @@
 import pygame
-HEIGHT = 600
+import random
+HEIGHT = 400
 WIDTH = int(HEIGHT * 4/3)
 YELLOW = (0xff, 0xff, 0x00)
 RED = (0xff, 0x00, 0x00)
@@ -20,42 +21,76 @@ class ConnectFour():
     self.height = 6
     self.board = [[None]*self.width for _ in range(self.height)]
     self.turn = PLAYER1
+    self.gameover = False
 
-  def move(self, move_column):
-    
-    return
+  def print_ascii_board(self):
+    print('\n'.join(['\t'.join([str(cell) for cell in row]) for row in self.board]))
+    print('-' * 30)
+    print()
 
   def winner(self):
-    horizontals = [row[i:i+4] for row in self.board for i in range(self.width-4)]
-    hwins = [subrow[0] and all(subrow[0] == subrow[i] for i in range(1, 4)) for subrow in horizontals]
-    if any(hwins):
+    horizontals = [row[i:i+4] for row in self.board for i in range(self.width-3)]
+    if self.check_fours(horizontals):
+      print("horizontal win")
       return True
 
-    verticals = [row[i] for i in range(self.height) for row in self.board]
-    verticalfour = [vertical[i:i+4] for i in range(self.height - 4) for vertical in verticals]
-    vwins = [subvert[0] and all(subvert[0] == subvert[i]) for i in range(1, 4) for subvert in verticalfour]
-    if any(vwins):
+    verticals = [[self.board[x][i] for x in range(self.height)] for i in range(self.width)]
+    verticalfour = [vertical[i:i+4] for i in range(self.height - 3) for vertical in verticals]
+    if self.check_fours(verticalfour):
+      print("vertical win")
       return True
     
     # down right
     downrights = []
-    for i in range(self.height - 4):
-      for j in range(self.width - 4):
+    for i in range(self.height - 3):
+      for j in range(self.width - 3):
         downright = [self.board[i][j], self.board[i+1][j+1], self.board[i+2][j+2], self.board[i+3][j+3]]
         downrights.append(downright)
-    drwins = [subdr[0] and all(subdr[0] == subdr[i]) for i in range(1, 4) for subdr in downrights]
-    if any(drwins):
+    if self.check_fours(downrights):
+      print("down right win")
       return True
 
     downlefts = []
-    for i in range(self.height - 4):
-      for j in range(4, self.width):
+    for i in range(self.height - 3):
+      for j in range(3, self.width):
         downleft = [self.board[i][j], self.board[i+1][j-1], self.board[i+2][j-2], self.board[i+3][j-3]]
         downlefts.append(downleft)
-    dlwins = [subdl[0] and all(subdl[0] == subdl[i]) for i in range(1, 4) for subdl in downlefts]
-    if any(dlwins):
+    if self.check_fours(downlefts):
+      print("down left win")
       return True
     return False
+
+  def draw(self) -> bool:
+    for row in self.board:
+      if None in row:
+        return False
+    return True
+  
+  def move(self, move_column) -> bool:
+    current_column = [self.board[x][move_column] for x in range(self.height)]
+    if current_column[0] is not None:
+      return False
+    i = 0
+    while i < len(current_column) and current_column[i] is None:
+      i += 1
+    self.board[i-1][move_column] = self.turn
+    if self.winner():
+      win_message = PIECECOLORS[self.turn]
+      self.print_ascii_board()
+      print(f"{win_message} pieces won. Last move: {move_column}.")
+      self.gameover = True
+    if self.draw():
+      self.print_ascii_board()
+      print(f"Draw. Last move: {move_column}.")
+      self.gameover = True
+    
+    self.turn = PLAYER2 if self.turn == PLAYER1 else PLAYER1
+    return True
+  
+  def check_fours(self, lists) -> bool:
+    for sublist in lists:
+      if sublist[0] is not None and all([sublist[0] == sublist[1], sublist[0] == sublist[2], sublist[0] == sublist[3]]):
+        return True
 
 def main():
     connectfour = ConnectFour()
@@ -76,6 +111,15 @@ def main():
         if event.type == pygame.QUIT:
           running = False
         else:
+          if connectfour.gameover:
+            print("game over!")
+            running = False
+          else:
+            if random.randrange(10) < 8:
+              moved = False
+              while not moved:
+                move_idea = random.randrange(7)
+                moved = connectfour.move(move_idea)
           screen.fill(BLUE)
           x = 0
           y = 0
@@ -93,6 +137,12 @@ def main():
               elif color == 'yellow':
                 screen.blit(yellow_square, (x, y))
           pygame.display.flip()
+    waitingToExit = True
+    while waitingToExit:
+      for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+          waitingToExit = False
+
 
 if __name__=="__main__":
     main()
