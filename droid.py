@@ -115,11 +115,31 @@ def main():
             print("game over!")
             running = False
           else:
-            if random.randrange(10) < 8:
-              moved = False
-              while not moved:
-                move_idea = random.randrange(7)
-                moved = connectfour.move(move_idea)
+            if connectfour.turn == PLAYER1:
+              if random.randrange(10) < 8:
+                moved = False
+                while not moved:
+                  move_idea = random.randrange(7)
+                  moved = connectfour.move(move_idea)
+            elif connectfour.turn == PLAYER2:
+              if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                  connectfour.move(0)
+                if event.key == pygame.K_2:
+                  connectfour.move(1)
+                if event.key == pygame.K_3:
+                  connectfour.move(2)
+                if event.key == pygame.K_4:
+                  connectfour.move(3)
+                if event.key == pygame.K_5:
+                  connectfour.move(4)
+                if event.key == pygame.K_6:
+                  connectfour.move(5)
+                if event.key == pygame.K_7:
+                  connectfour.move(6)
+            else:
+              raise Exception("turn invalid")
+
           screen.fill(BLUE)
           x = 0
           y = 0
